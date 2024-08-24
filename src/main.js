@@ -74,6 +74,13 @@ const config = {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
     },
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 300 },
+            debug: false
+        }
+    },
     scene: 
         [
             Main,
@@ -82,6 +89,3 @@ const config = {
 };
 
 export default new Phaser.Game(config);
-
-// 여기서부터 튜토리얼 이어서 하기
-//https://phaser.io/tutorials/making-your-first-phaser-3-game/part2
