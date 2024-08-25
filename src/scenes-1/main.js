@@ -20,6 +20,10 @@ export class Main extends Scene{
 
         this.window;
         this.windowText;
+        this.windowGroup;
+        this.tween;
+
+        this.timedEvent;
         
     }
 
@@ -62,16 +66,57 @@ export class Main extends Scene{
         this.player.setTint(0xff0000);
         // 플레이어 이미지 애니메이션 'turn' 설정
         this.player.anims.play('turn');
+        
+        this.timedEvent = this.time.delayedCall(500, this.showGameOverText, [], this);
+        
+    }
+
+    showGameOverText(){
         // 게임오버 조건 true로 설정
         this.gameOver = true;
-
         // 게임 오버 윈도우
-        this.window = this.add.image(this.WIDTH/2, this.HEIGHT/2, 'window').setOrigin(0.5, 0.5);
+        this.window = this.add.image(this.WIDTH/2,-100, 'window').setOrigin(0.5, 0.5);
         this.window.setScale(1.5);
         // 게임 오버 텍스트
-        this.windowText = this.add.text(this.WIDTH/2, this.HEIGHT/2,'Game Over\n Press R for Restarting!', { fontSize: '20px', fill: '#000', fontFamily: 'Minecrafter' });
+        this.windowText = this.add.text(this.WIDTH/2, -100,'Game Over\n Press R for Restarting!', { fontSize: '20px', fill: '#000', fontFamily: 'Minecrafter' });
         this.windowText.setOrigin(0.5, 0.5);
         this.windowText.setAlign('center');
+        this.windowGroup = this.add.group([this.window, this.windowText]);
+        this.tween = this.tweens.addCounter({
+            from: 0,
+            to: 1,
+            ease : Phaser.Math.Easing.Sine.InOut,
+            duration: 1000,
+            repeat: 0,
+            yoyo: false,
+            onUpdate: tween =>{
+                const value = tween.getValue();
+                const tempValue = Phaser.Math.Interpolation.Linear([this.window.displayHeight/2, this.HEIGHT/2], value);
+                this.windowGroup.setY(tempValue);
+            },    
+        });
+
+
+        // this.tween = this.tweens.chain({
+        //     targets: this.windowGroup,
+        //     tweens:[{
+        //         // onUpdate: (tween) =>{
+        //         //     tween.targets[0].setY(tween.getValue());
+        //         // },
+        //         y: {from: 0, to: this.HEIGHT/2,},
+        //         ease: 'power3',
+        //         duration: 750
+        //     },
+        //     {
+        //         onUpdate: (tween) =>{
+        //             tween.targets[0].angle(Phaser.Math.DegToRad(tween.getValue()));
+        //         },
+        //         value: {from: 0, to: 20},
+        //         ease: Phaser.Math.Easing.Bounce.InOut,
+        //         duration: 500
+        //     },
+        //     ],
+        // }); 
     }
 
     create(){
@@ -81,7 +126,7 @@ export class Main extends Scene{
         this.platforms = this.physics.add.staticGroup();
     
         this.platforms.create(400, 568, 'ground').setScale(2).refreshBody();
-    
+        
         this.platforms.create(600, 400, 'ground');
         this.platforms.create(50, 250, 'ground');
         this.platforms.create(750, 220, 'ground');
@@ -147,10 +192,9 @@ export class Main extends Scene{
 
     update(){
         if(this.gameOver){
-
             if(this.keyR.isDown){
                 this.scene.restart();
-                this.physics.resume;
+                // this.physics.resume();
                 // 플레이어 이미지 붉게 칠하기
                 this.player.setTint(0x000000);
                 this.gameOver = false;
