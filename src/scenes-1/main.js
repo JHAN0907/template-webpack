@@ -82,19 +82,19 @@ export class Main extends Scene{
         this.windowText.setOrigin(0.5, 0.5);
         this.windowText.setAlign('center');
         this.windowGroup = this.add.group([this.window, this.windowText]);
-        this.tween = this.tweens.addCounter({
-            from: 0,
-            to: 1,
-            ease : Phaser.Math.Easing.Sine.InOut,
-            duration: 1000,
-            repeat: 0,
-            yoyo: false,
-            onUpdate: tween =>{
-                const value = tween.getValue();
-                const tempValue = Phaser.Math.Interpolation.Linear([this.window.displayHeight/2, this.HEIGHT/2], value);
-                this.windowGroup.setY(tempValue);
-            },    
-        });
+        // this.tween = this.tweens.addCounter({
+        //     from: 0,
+        //     to: 1,
+        //     ease : Phaser.Math.Easing.Sine.InOut,
+        //     duration: 1000,
+        //     repeat: 0,
+        //     yoyo: false,
+        //     onUpdate: tween =>{
+        //         const value = tween.getValue();
+        //         const tempValue = Phaser.Math.Interpolation.Linear([this.window.displayHeight/2, this.HEIGHT/2], value);
+        //         this.windowGroup.setY(tempValue);
+        //     },    
+        // });
 
 
         // this.tween = this.tweens.chain({
@@ -117,6 +117,13 @@ export class Main extends Scene{
         //     },
         //     ],
         // }); 
+        this.windowGroup.
+        this.tween = this.tweens.add({
+            targets: this.windowGroup,
+            y: this.HEIGHT/2,
+            ease:'Power1',
+            duration: 2000
+        });
     }
 
     create(){
