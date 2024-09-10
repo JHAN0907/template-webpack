@@ -10,5 +10,7 @@ https://labs.phaser.io/index.html?dir=&q=
 ease 함수 모음
 https://rexrainbow.github.io/phaser3-rex-notes/docs/site/ease-function/
 
+phaser tutorial
+https://rexrainbow.github.io/phaser3-rex-notes/docs/site/path/
 
 https://www.yumpu.com/xx/document/view/53199909/-

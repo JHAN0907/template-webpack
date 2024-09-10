@@ -8,11 +8,13 @@ export class Main extends Phaser.Scene
     speed;
     ship;
     bullets;
+    
 
     preload ()
     {
         this.load.image('ship', 'assets/ship.png');
         this.load.image('bullet1', 'assets/bullets/bullet11.png');
+        this.load.image('bullet2', 'assets/bullets/bullet7.png');
     }
 
     create ()
@@ -69,8 +71,49 @@ export class Main extends Phaser.Scene
             runChildUpdate: true
         });
 
-        this.ship = this.add.sprite(400, 300, 'ship').setDepth(1);
+        this.ship = this.add.sprite(400, 50, 'ship').setDepth(1);
+        this.ship.setScale(1);
 
+        // graphics 오브젝트 하나 생성
+        // 이것으로 화면에 그림을 그릴 수 있도록 한다.
+        const graphics = this.add.graphics();
+        // path 오브젝트 생성
+        const path = new Phaser.Curves.Path(this.ship.x,this.ship.y);
+        for (let i = 0; i < 8; i++)
+        {
+            // xRadius, yRadius, startAngle, endAngle, clockwise, rotation
+            if (i % 2 === 0)
+            {
+                path.ellipseTo(50, 80, 180, 360, true, 0);
+            }
+            else
+            {
+                path.ellipseTo(50, 80, 180, 360, false, 0);
+            }
+        }
+    
+        graphics.lineStyle(1, 0xffffff, 1);
+
+        path.draw(graphics);
+
+        for (let i = 0; i < 40; i++)
+        {
+            let follower;
+            {
+                follower = this.add.follower(path, 100, 100 + (30 * i), 'bullet2');
+                follower.setBlendMode(Phaser.BlendModes.ADD);
+                follower.setScale(2);
+            }
+
+            follower.startFollow({
+                duration: 4000,
+                positionOnPath: true,
+                repeat: -1,
+                ease: 'Linear',
+                delay: i * 70
+            });
+        }
+        
         this.input.on('pointerdown', pointer =>
         {
 
@@ -111,7 +154,7 @@ export class Main extends Phaser.Scene
             }
         }
 
-        this.ship.setRotation(Phaser.Math.Angle.Between(this.mouseX, this.mouseY, this.ship.x, this.ship.y) - Math.PI / 2);
-
+        this.ship.setRotation(Math.PI);
+        // this.path.setRotation(Pahser.Math.Angle.Between(this.mouseX, this.mouseY, this.ship.x, this.ship.y))
     }
 }
