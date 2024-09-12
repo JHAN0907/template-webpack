@@ -68,7 +68,7 @@ import {Main} from './bullet-hell/multi_pools';
 
 const config = {
     type: Phaser.AUTO,
-    width: 800,
+    width: 400,
     height: 600,
     parent: 'game-container',
     scale: {

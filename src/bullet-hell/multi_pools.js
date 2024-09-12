@@ -8,6 +8,9 @@ export class Main extends Phaser.Scene
     speed;
     ship;
     bullets;
+
+    gameWidth = 400;
+    gameHeight = 600;
     
 
     preload ()
@@ -19,35 +22,40 @@ export class Main extends Phaser.Scene
 
     create ()
     {
+        this.ship = this.add.sprite(200, 100, 'ship').setDepth(1);
+        this.ship.setScale(1);
         class Bullet extends Phaser.GameObjects.Image
         {
             constructor (scene)
             {
-                super(scene, 0, 0, 'bullet1');
+                super(scene, 0, 0, 'bullet2');
 
                 this.incX = 0;
                 this.incY = 0;
                 this.lifespan = 0;
 
-                this.speed = Phaser.Math.GetSpeed(2050, 1);
+                this.speed = Phaser.Math.GetSpeed(100, 1);
             }
 
-            fire (x, y)
+            fire (x, y, main_x, main_y, speed = 100)
             {
                 this.setActive(true);
                 this.setVisible(true);
 
                 //  Bullets fire from the middle of the screen to the given x/y
-                this.setPosition(400, 300);
+                this.setPosition(main_x, main_y);
 
-                const angle = Phaser.Math.Angle.Between(x, y, 400, 300);
+                const angle = Phaser.Math.Angle.Between(x, y, main_x, main_y);
 
                 this.setRotation(angle);
 
                 this.incX = Math.cos(angle);
                 this.incY = Math.sin(angle);
 
-                this.lifespan = 1000;
+                // 1000 당 1초
+                this.lifespan = 10*1000;
+
+                this.speed = Phaser.Math.GetSpeed(speed, 1);
             }
 
             update (time, delta)
@@ -57,8 +65,13 @@ export class Main extends Phaser.Scene
                 this.x -= this.incX * (this.speed * delta);
                 this.y -= this.incY * (this.speed * delta);
 
-                if (this.lifespan <= 0)
+                // if(this.lifespan < 0){
+                //     this.setActive(false);
+                //     this.setVisible(false);
+                // }
+                if(this.x < -100 || this.x > this.gameWidth + 100 || this. y < -100 || this.y > this.gameHeight + 100)
                 {
+                    // console.log("i am die");
                     this.setActive(false);
                     this.setVisible(false);
                 }
@@ -67,53 +80,10 @@ export class Main extends Phaser.Scene
 
         this.bullets = this.add.group({
             classType: Bullet,
-            maxSize: 50,
+            maxSize: 10000,
             runChildUpdate: true
         });
 
-        this.ship = this.add.sprite(400, 50, 'ship').setDepth(1);
-        this.ship.setScale(1);
-
-        // graphics 오브젝트 하나 생성
-        // 이것으로 화면에 그림을 그릴 수 있도록 한다.
-        const graphics = this.add.graphics();
-        // path 오브젝트 생성
-        const path = new Phaser.Curves.Path(this.ship.x,this.ship.y);
-        for (let i = 0; i < 8; i++)
-        {
-            // xRadius, yRadius, startAngle, endAngle, clockwise, rotation
-            if (i % 2 === 0)
-            {
-                path.ellipseTo(50, 80, 180, 360, true, 0);
-            }
-            else
-            {
-                path.ellipseTo(50, 80, 180, 360, false, 0);
-            }
-        }
-    
-        graphics.lineStyle(1, 0xffffff, 1);
-
-        path.draw(graphics);
-
-        for (let i = 0; i < 40; i++)
-        {
-            let follower;
-            {
-                follower = this.add.follower(path, 100, 100 + (30 * i), 'bullet2');
-                follower.setBlendMode(Phaser.BlendModes.ADD);
-                follower.setScale(2);
-            }
-
-            follower.startFollow({
-                duration: 4000,
-                positionOnPath: true,
-                repeat: -1,
-                ease: 'Linear',
-                delay: i * 70
-            });
-        }
-        
         this.input.on('pointerdown', pointer =>
         {
 
@@ -142,19 +112,34 @@ export class Main extends Phaser.Scene
     update (time, delta)
     {
 
-        if (this.isDown && time > this.lastFired)
+        if ( time > this.lastFired)
         {
-            const bullet = this.bullets.get();
-
-            if (bullet)
+            let lineNum = 8;
+            let bulletInterval = 50;
+            for (let i = 0; i < lineNum; i++)
             {
-                bullet.fire(this.mouseX, this.mouseY);
+                // 총알 하나 가져오기
+                const bullet = this.bullets.get();
+                /*
+                    총알이 발사되는 방향 계산하는 식
+                    1. 사방으로 퍼져나가는 방향 계산 : Math.cos(i*(2*Math.PI/lineNum))
+                    2. 퍼져나가는 방향에 변화를 주는 요소 추가 : Math.cos(time/1000)
+                */
+                let result_x = this.ship.x + Math.cos(i*(2*Math.PI/lineNum) + Math.cos(time/700));
+                let result_y = this.ship.y + Math.sin(i*(2*Math.PI/lineNum)+ Math.cos(time/700));
+                // 총알이 정상적으로 가져와졌다면 
+                if (bullet)
+                {
+                    // 해당 총알을 마우스 방향으로 발사
+                    bullet.fire(result_x, result_y, this.ship.x, this.ship.y, 100*Math.cos(time/700) + 100);
 
-                this.lastFired = time + 50;
+                    // 50 time 간격으로 발사되게 조정한다. 
+                    this.lastFired = time + bulletInterval;
+                }
             }
+            
         }
 
         this.ship.setRotation(Math.PI);
-        // this.path.setRotation(Pahser.Math.Angle.Between(this.mouseX, this.mouseY, this.ship.x, this.ship.y))
     }
 }

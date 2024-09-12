@@ -13,4 +13,7 @@ https://rexrainbow.github.io/phaser3-rex-notes/docs/site/ease-function/
 phaser tutorial
 https://rexrainbow.github.io/phaser3-rex-notes/docs/site/path/
 
+탄막에 사용되는 함수들
+https://gall.dcinside.com/mgallery/board/view/?id=teamshanghaialice&no=978541
+
 https://www.yumpu.com/xx/document/view/53199909/-
