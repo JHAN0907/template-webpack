@@ -68,8 +68,8 @@ import {Main} from './bullet-hell/multi_pools';
 
 const config = {
     type: Phaser.AUTO,
-    width: 400,
-    height: 600,
+    width: 300,
+    height: 400,
     parent: 'game-container',
     scale: {
         mode: Phaser.Scale.FIT,
