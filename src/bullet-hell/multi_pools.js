@@ -8,7 +8,7 @@ export class Main extends Phaser.Scene
     speed;
     ship;
     bullets;
-
+    test;
     gameWidth = 400;
     gameHeight = 600;
     
