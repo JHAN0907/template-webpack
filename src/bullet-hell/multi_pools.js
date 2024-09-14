@@ -15,6 +15,9 @@ export class Main extends Phaser.Scene
     starts;
     keyboard;
     
+    playerXSpeed;
+    playerYSpeed;
+    playerDefaultSpeed;
 
     preload ()
     {
@@ -43,6 +46,10 @@ export class Main extends Phaser.Scene
                 this.lifespan = 0;
 
                 this.speed = Phaser.Math.GetSpeed(100, 1);
+
+                this.playerXSpeed = 0;
+                this.playerYSpeed = 0;
+                this.playerDefaultSpeed = 100;
             }
 
             fire (x, y, main_x, main_y, speed = 100)
@@ -93,10 +100,14 @@ export class Main extends Phaser.Scene
             runChildUpdate: true
         });
 
-        this.player = this.add.image(this.gameWidth/2, this.gameHeight-50, 'player').setDepth(1);
+        // 게임 중력 조절
+        this.physics.world.gravity.y = 0;
+
+        this.player = this.physics.add.sprite(this.gameWidth/2, this.gameHeight-50, 'player').setDepth(1);
         this.player.setScale(1);
         this.player.setOrigin(0.5, 0.5);
-        this.heart = this.add.image(this.player.x, this.player.y, 'heart').setDepth(2);
+        this.player.setCollideWorldBounds(true);
+        this.heart = this.physics.add.sprite(this.player.x, this.player.y, 'heart').setDepth(2);
         this.heart.setOrigin(0.5, 0.5);
         this.heart.setScale(1/200);
 
@@ -111,12 +122,27 @@ export class Main extends Phaser.Scene
   
             // 특정 키가 눌렸을 때의 동작 수행
             if(keyCode === Phaser.Input.Keyboard.KeyCodes.LEFT) {
-                this.player.x -= 1;
+                this.player.setVelocityX(-160);
             }
             
             if(keyCode === Phaser.Input.Keyboard.KeyCodes.RIGHT) {
                 // 우측 이동 로직
-                this.player.x += 1;
+                this.player.setVelocityX(160);
+            }
+        });
+
+        this.keyboard.on('keyup', event =>{
+            let keyCode = event.keyCode;
+  
+            // 특정 키가 눌렸을 때의 동작 수행
+            if(keyCode === Phaser.Input.Keyboard.KeyCodes.LEFT) {
+                this.playerXSpeed +=160;
+                
+            }
+            
+            if(keyCode === Phaser.Input.Keyboard.KeyCodes.RIGHT) {
+                // 우측 이동 로직
+                this.player.setVelocityX(0);
             }
         });
 
@@ -209,5 +235,8 @@ export class Main extends Phaser.Scene
         // 512가 넘어가는 순간 다시 0으로 초기화
         // 즉 배경 2개가 번갈아가면서 보이게 되는 것이다. 
         this.stars.y %= 512;
+
+        this.heart.setPosition(this.player.x, this.player.y);
+        
     }
 }
