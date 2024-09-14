@@ -1,8 +1,8 @@
 export class Main extends Phaser.Scene
 {
-    mouseY = 0;
-    mouseX = 0;
-    isDown = false;
+    // mouseY = 0;
+    // mouseX = 0;
+    // isDown = false;
     lastFired = 0;
     stats;
     speed;
@@ -12,13 +12,22 @@ export class Main extends Phaser.Scene
     gameHeight = 400;
 
     player;
+    playerState =1;
     starts;
     keyboard;
+    keyR;
     
-    playerXSpeed;
-    playerYSpeed;
     playerDefaultSpeed;
+    playerSlow;
+    playerDefaultSlow;
 
+    gameOver = false;
+    timedEvent;
+    superTime = false;
+
+    constructor(){
+        super("main");
+    }
     preload ()
     {
         this.load.image('ship', 'assets/ship.png');
@@ -31,11 +40,17 @@ export class Main extends Phaser.Scene
 
     create ()
     {
-        this.keyboard = this.input.keyboard;
+        // 플레이어 속도 조절 변수
+        this.playerDefaultSpeed = 80;
+        this.playerSlow = 1;
+        this.playerDefaultSlow = 1/2;
+
+        this.keyboard =  this.input.keyboard.createCursorKeys();
+        this.keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
         
         this.ship = this.add.sprite(this.gameWidth/2, 100, 'ship').setDepth(1);
         this.ship.setScale(1/2);
-        class Bullet extends Phaser.GameObjects.Image
+        class Bullet extends Phaser.Physics.Arcade.Image
         {
             constructor (scene)
             {
@@ -47,9 +62,6 @@ export class Main extends Phaser.Scene
 
                 this.speed = Phaser.Math.GetSpeed(100, 1);
 
-                this.playerXSpeed = 0;
-                this.playerYSpeed = 0;
-                this.playerDefaultSpeed = 100;
             }
 
             fire (x, y, main_x, main_y, speed = 100)
@@ -91,10 +103,10 @@ export class Main extends Phaser.Scene
                     this.setVisible(false);
                 }
             }
-
         }
+        
 
-        this.bullets = this.add.group({
+        this.bullets = this.physics.add.group({
             classType: Bullet,
             maxSize: 10000,
             runChildUpdate: true
@@ -106,10 +118,13 @@ export class Main extends Phaser.Scene
         this.player = this.physics.add.sprite(this.gameWidth/2, this.gameHeight-50, 'player').setDepth(1);
         this.player.setScale(1);
         this.player.setOrigin(0.5, 0.5);
-        this.player.setCollideWorldBounds(true);
+        this.player.setAlpha(0.5);
+
         this.heart = this.physics.add.sprite(this.player.x, this.player.y, 'heart').setDepth(2);
         this.heart.setOrigin(0.5, 0.5);
         this.heart.setScale(1/200);
+        this.heart.setCollideWorldBounds(true);
+        this.heart.setBodySize(5, 5);
 
         this.stars = this.add.blitter(0, 0, 'background');
         this.stars.create(0, 0);
@@ -117,67 +132,73 @@ export class Main extends Phaser.Scene
 
         this.physics.world.setBounds(0, 0, this.gameWidth, this.gameHeight);
 
-        this.keyboard.on('keydown', event =>{
-            let keyCode = event.keyCode;
-  
-            // 특정 키가 눌렸을 때의 동작 수행
-            if(keyCode === Phaser.Input.Keyboard.KeyCodes.LEFT) {
-                this.player.setVelocityX(-160);
+        this.physics.add.overlap(this.heart, this.bullets, (heart, bullet) =>
+        {
+            const { x, y } = bullet.body.center;
+            console.log(this.playerState);
+            if(!this.superTime){
+                this.playerState -= 1;
+                this.superTime = true;
+                this.player.setTint(0x0000FF);
+                this.timedEvent = this.time.delayedCall(3000, this.onEvent, [], this);
             }
             
-            if(keyCode === Phaser.Input.Keyboard.KeyCodes.RIGHT) {
-                // 우측 이동 로직
-                this.player.setVelocityX(160);
+            bullet.setActive(false);
+            bullet.setVisible(false);
+            // this.plasma.setSpeedY(0.2 * bullet.body.velocity.y).emitParticleAt(x, y);
+            // this.plasma.emitParticleAt(x, y);
+
+            if (this.playerState <= 0)
+            {
+                this.gameOver = true;
+                this.player.setTint(0xFF0000);
+                if(this.keyR.isDown){
+                    this.scene.restart();
+                    this.superTime = false;
+                    this.gameOver = false;
+                    this.playerState = 1;
+
+                }
             }
         });
 
-        this.keyboard.on('keyup', event =>{
-            let keyCode = event.keyCode;
-  
-            // 특정 키가 눌렸을 때의 동작 수행
-            if(keyCode === Phaser.Input.Keyboard.KeyCodes.LEFT) {
-                this.playerXSpeed +=160;
-                
-            }
-            
-            if(keyCode === Phaser.Input.Keyboard.KeyCodes.RIGHT) {
-                // 우측 이동 로직
-                this.player.setVelocityX(0);
-            }
-        });
 
-        this.input.on('pointerdown', pointer =>
-        {
+        // this.input.on('pointerdown', pointer =>
+        // {
 
-            this.isDown = true;
-            this.mouseX = pointer.x;
-            this.mouseY = pointer.y;
+        //     this.isDown = true;
+        //     this.mouseX = pointer.x;
+        //     this.mouseY = pointer.y;
 
-        });
+        // });
 
-        this.input.on('pointermove', pointer =>
-        {
+        // this.input.on('pointermove', pointer =>
+        // {
 
-            this.mouseX = pointer.x;
-            this.mouseY = pointer.y;
+        //     this.mouseX = pointer.x;
+        //     this.mouseY = pointer.y;
 
-        });
+        // });
 
-        this.input.on('pointerup', pointer =>
-        {
+        // this.input.on('pointerup', pointer =>
+        // {
 
-            this.isDown = false;
+        //     this.isDown = false;
 
-        });
+        // });
     }
 
+    onEvent(){
+        this.superTime = false;
+        this.player.setTint(0xFFFFFF);
+    }
     update (time, delta)
     {
 
         if ( time > this.lastFired)
         {
             let lineNum = 8;
-            let bulletInterval = 50;
+            let bulletInterval = 100;
             for (let i = 0; i < lineNum; i++)
             {
                 // 총알 하나 가져오기
@@ -195,7 +216,7 @@ export class Main extends Phaser.Scene
                 if (bullet)
                 {
                     // 해당 총알을 마우스 방향으로 발사
-                    bullet.fire(result_x, result_y, this.ship.x, this.ship.y,  100);
+                    bullet.fire(result_x, result_y, this.ship.x, this.ship.y,  50);
 
                     // 50 time 간격으로 발사되게 조정한다. 
                     this.lastFired = time + bulletInterval;
@@ -227,6 +248,43 @@ export class Main extends Phaser.Scene
             }
             
         }
+        // 키보드 이벤트
+        if(!this.gameOver){
+            if (this.keyboard.left.isDown)
+            {
+                this.heart.setVelocityX(-this.playerDefaultSpeed* this.playerSlow);
+            }
+            else if (this.keyboard.right.isDown)
+            {
+                this.heart.setVelocityX(this.playerDefaultSpeed* this.playerSlow);
+            }
+            else
+            {
+                this.heart.setVelocityX(0);
+            }
+    
+            if (this.keyboard.up.isDown)
+            {
+                this.heart.setVelocityY(-this.playerDefaultSpeed* this.playerSlow);
+            } 
+            else if (this.keyboard.down.isDown)
+            {
+                this.heart.setVelocityY(this.playerDefaultSpeed* this.playerSlow);
+            }
+            else
+            {
+                this.heart.setVelocityY(0);
+            }
+        }
+        
+
+        if(this.keyboard.shift.isDown){
+            this.playerSlow = this.playerDefaultSlow;
+        }else{
+            this.playerSlow = 1;
+        }
+
+        
 
         this.ship.setRotation(Math.PI);
 
@@ -235,8 +293,7 @@ export class Main extends Phaser.Scene
         // 512가 넘어가는 순간 다시 0으로 초기화
         // 즉 배경 2개가 번갈아가면서 보이게 되는 것이다. 
         this.stars.y %= 512;
-
-        this.heart.setPosition(this.player.x, this.player.y);
-        
+        // sprite 두개를 묶는 방법을 못 찾겠다. ---------------------------------
+        this.player.setPosition(this.heart.x, this.heart.y);
     }
 }

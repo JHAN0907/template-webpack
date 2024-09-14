@@ -6,7 +6,8 @@
 // import {Example} from './scenes-1/Test'
 
 // import {Main} from './scenes-1/main';
-import {Main} from './bullet-hell/multi_pools';
+import {Main} from './bullet-hell/main';
+import {Preload} from './bullet-hell/preload';
 
 //  Find out more information about the Game Config at:
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
@@ -84,7 +85,7 @@ const config = {
     },
     scene: 
         [
-            Main,
+            Preload,Main,
         ]
     
 };

@@ -17,3 +17,6 @@ https://rexrainbow.github.io/phaser3-rex-notes/docs/site/path/
 https://gall.dcinside.com/mgallery/board/view/?id=teamshanghaialice&no=978541
 
 https://www.yumpu.com/xx/document/view/53199909/-
+
+재밌어 보이는거
+https://labs.phaser.io/index.html?dir=game%20objects/sprites/&q=
