@@ -1,5 +1,7 @@
 export class Preload extends Phaser.Scene{
 
+    skip = true;
+
     logo;
     startText;
     optionText;
@@ -55,6 +57,11 @@ export class Preload extends Phaser.Scene{
     }
 
     update(){
+        if(this.skip){
+            console.log("preload page is skiped");
+            this.scene.start("main");
+        }
+
         this.stars.y += 1;
         this.stars.y %= 512;
     }
