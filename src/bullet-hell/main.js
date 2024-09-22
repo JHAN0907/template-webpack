@@ -1,3 +1,5 @@
+import {Bullet, Laser} from './bullet';
+
 export class Main extends Phaser.Scene
 {
     // mouseY = 0;
@@ -35,6 +37,9 @@ export class Main extends Phaser.Scene
     gameOver = false;
     timedEvent;
     superTime = false;
+
+    bulletCreated = false;
+    bulletArray = [];
 
     constructor(){
         super("main");
@@ -74,64 +79,6 @@ export class Main extends Phaser.Scene
         
         this.ship = this.add.sprite(this.gameWidth/2, 100, 'ship').setDepth(1);
         this.ship.setScale(1/2);
-        class Bullet extends Phaser.Physics.Arcade.Image
-        {
-            constructor (scene)
-            {
-                super(scene, 0, 0, 'bullet3');
-
-                this.incX = 0;
-                this.incY = 0;
-                this.lifespan = 0;
-
-                this.speed = Phaser.Math.GetSpeed(100, 1);
-                this.setScale(0.5);
-                
-
-            }
-
-            fire (x, y, main_x, main_y, speed = 100)
-            {
-                this.setActive(true);
-                this.setVisible(true);
-                // bullet3 피격 범위 (12, 30)
-                this.setBodySize(12, 30);
-
-                //  Bullets fire from the middle of the screen to the given x/y
-                this.setPosition(main_x, main_y);
-
-                const angle = Phaser.Math.Angle.Between(x, y, main_x, main_y);
-
-                this.setRotation(angle + Math.PI);
-
-                this.incX = Math.cos(angle);
-                this.incY = Math.sin(angle);
-
-                // 1000 당 1초
-                this.lifespan = 10*1000;
-
-                this.speed = Phaser.Math.GetSpeed(speed, 1);
-            }
-
-            update (time, delta)
-            {
-                this.lifespan -= delta;
-
-                this.x -= this.incX * (this.speed * delta);
-                this.y -= this.incY * (this.speed * delta);
-
-                // if(this.lifespan < 0){
-                //     this.setActive(false);
-                //     this.setVisible(false);
-                // }
-                if(this.x < -100 || this.x > this.gameWidth + 100 || this. y < -100 || this.y > this.gameHeight + 100)
-                {
-                    // console.log("i am die");
-                    this.setActive(false);
-                    this.setVisible(false);
-                }
-            }
-        }
 
         class PlayerBullet extends Phaser.Physics.Arcade.Image
         {
@@ -192,7 +139,7 @@ export class Main extends Phaser.Scene
         
 
         this.enemy_bullets = this.physics.add.group({
-            classType: Bullet,
+            classType: Laser,
             maxSize: 10000,
             runChildUpdate: true
         });
@@ -260,8 +207,87 @@ export class Main extends Phaser.Scene
         this.superTime = false;
         this.player.setTint(0xFFFFFF);
     }
+
+    
+
     update (time, delta)
     {
+        // this.attack_pattern1(time, delta);
+        this.attack_pattern2(time, delta);
+        
+        // 키보드 이벤트
+        if(!this.gameOver){
+            if (this.keyA.isDown)
+            {
+                this.heart.setVelocityX(-this.playerDefaultSpeed* this.playerSlow);
+            }
+            else if (this.keyD.isDown)
+            {
+                this.heart.setVelocityX(this.playerDefaultSpeed* this.playerSlow);
+            }
+            else
+            {
+                this.heart.setVelocityX(0);
+            }
+    
+            if (this.keyW.isDown)
+            {
+                this.heart.setVelocityY(-this.playerDefaultSpeed* this.playerSlow);
+            } 
+            else if (this.keyS.isDown)
+            {
+                this.heart.setVelocityY(this.playerDefaultSpeed* this.playerSlow);
+            }
+            else
+            {
+                this.heart.setVelocityY(0);
+            }
+
+            if(this.keySpace.isDown && time > this.player_lastFired){
+                let lineNum = 1;
+                let bulletInterval = 100;
+                for (let i = 0; i < lineNum; i++)
+                {
+                    // 총알 하나 가져오기
+                    const bullet = this.player_bullets.get();
+
+                    let result_x = this.player.x + Math.cos(3*Math.PI/2);
+                    let result_y = this.player.y + Math.sin(3*Math.PI/2);
+                    // 총알이 정상적으로 가져와졌다면 
+                    if (bullet)
+                    {
+                        // 해당 총알을 마우스 방향으로 발사
+                        bullet.fire(result_x, result_y, this.player.x, this.player.y,  100);
+    
+                        // 50 time 간격으로 발사되게 조정한다. 
+                        this.player_lastFired = time + bulletInterval;
+                    }
+                }
+            }
+        }
+        
+        // shift를 누르면 속도가 느려지게 만든다.
+        if(this.keyShift.isDown){
+            this.playerSlow = this.playerDefaultSlow;
+        }else{
+            this.playerSlow = 1;
+        }
+
+        
+
+        this.ship.setRotation(Math.PI);
+
+        // 배경 움직이기
+        this.stars.y += 1;
+        // 512가 넘어가는 순간 다시 0으로 초기화
+        // 즉 배경 2개가 번갈아가면서 보이게 되는 것이다. 
+        this.stars.y %= 512;
+        // sprite 두개를 묶는 방법을 못 찾겠다. ---------------------------------
+        this.player.setPosition(this.heart.x, this.heart.y);
+    }
+
+    // 적 공격 방식 1
+    attack_pattern1(time, delta){
         // 적 탄환 발사 로직
         if ( time > this.lastFired)
         {
@@ -316,78 +342,34 @@ export class Main extends Phaser.Scene
             }
             
         }
-        // 키보드 이벤트
-        if(!this.gameOver){
-            if (this.keyA.isDown)
-            {
-                console.log("i am left");
-                this.heart.setVelocityX(-this.playerDefaultSpeed* this.playerSlow);
-            }
-            else if (this.keyD.isDown)
-            {
-                console.log("i am right");
-                this.heart.setVelocityX(this.playerDefaultSpeed* this.playerSlow);
-            }
-            else
-            {
-                this.heart.setVelocityX(0);
-            }
-    
-            if (this.keyW.isDown)
-            {
-                console.log("i am up");
-                this.heart.setVelocityY(-this.playerDefaultSpeed* this.playerSlow);
-            } 
-            else if (this.keyS.isDown)
-            {
-                console.log("i am down");
-                this.heart.setVelocityY(this.playerDefaultSpeed* this.playerSlow);
-            }
-            else
-            {
-                this.heart.setVelocityY(0);
-            }
+    }
 
-            if(this.keySpace.isDown && time > this.player_lastFired){
-                let lineNum = 1;
-                let bulletInterval = 100;
-                for (let i = 0; i < lineNum; i++)
-                {
-                    // 총알 하나 가져오기
-                    const bullet = this.player_bullets.get();
+    attack_pattern2(time, delta){
+        let bulletInterval = 100;
+        let lineNum = 8;
 
-                    let result_x = this.player.x + Math.cos(3*Math.PI/2);
-                    let result_y = this.player.y + Math.sin(3*Math.PI/2);
-                    // 총알이 정상적으로 가져와졌다면 
-                    if (bullet)
-                    {
-                        // 해당 총알을 마우스 방향으로 발사
-                        bullet.fire(result_x, result_y, this.player.x, this.player.y,  100);
-    
-                        // 50 time 간격으로 발사되게 조정한다. 
-                        this.player_lastFired = time + bulletInterval;
-                    }
-                }
+        if(!this.bulletCreated){
+            for (let i = 0; i < lineNum; i++)
+            {
+                this.bulletArray.push(this.enemy_bullets.get());
             }
-        }
-        
-
-        if(this.keyShift.isDown){
-            this.playerSlow = this.playerDefaultSlow;
-        }else{
-            this.playerSlow = 1;
+            
+            this.bulletCreated = true;
         }
 
-        
+        for (let i = 0; i < lineNum; i++)
+        {
+            this.bulletArray[i].setActive(true);
+            this.bulletArray[i].setVisible(true);
 
-        this.ship.setRotation(Math.PI);
+            let result_x = this.ship.x + Math.cos(i*(2*Math.PI/lineNum) + 2*Math.cos(time/700));
+            let result_y = this.ship.y + Math.sin(i*(2*Math.PI/lineNum) + 2*Math.cos(time/700));
+            
+            this.bulletArray[i].setPosition(this.ship.x, this.ship.y);
 
-        // 배경 움직이기
-        this.stars.y += 1;
-        // 512가 넘어가는 순간 다시 0으로 초기화
-        // 즉 배경 2개가 번갈아가면서 보이게 되는 것이다. 
-        this.stars.y %= 512;
-        // sprite 두개를 묶는 방법을 못 찾겠다. ---------------------------------
-        this.player.setPosition(this.heart.x, this.heart.y);
+            const angle = Phaser.Math.Angle.Between(result_x, result_y, this.ship.x, this.ship.y);
+
+            this.bulletArray[i].setRotation(angle + Math.PI);
+        }
     }
 }

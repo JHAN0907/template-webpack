@@ -20,3 +20,6 @@ https://www.yumpu.com/xx/document/view/53199909/-
 
 재밌어 보이는거
 https://labs.phaser.io/index.html?dir=game%20objects/sprites/&q=
+
+게임 알고리즘 
+https://m.blog.naver.com/wkdckdgur34/223317734697
