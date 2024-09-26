@@ -12,7 +12,8 @@ export class Main extends Phaser.Scene
     speed;
     ship;
     bullets;
-    enemy_bullets;
+    enemy_bullets_fireball;
+    enemy_bullets_laser;
     //bullets
     player_bullets;
     gameWidth = 300;
@@ -41,6 +42,9 @@ export class Main extends Phaser.Scene
     bulletCreated = false;
     bulletArray = [];
 
+    bulletTimedEvent = new Phaser.Time.TimerEvent({ delay: 1000000 , loop: true});
+
+
     constructor(){
         super("main");
     }
@@ -57,11 +61,16 @@ export class Main extends Phaser.Scene
 
     create ()
     {
+        // 레이저 움직임을 위한 타이머 생성
+        this.time.addEvent(this.bulletTimedEvent);
+
         // 탄 피격 범위 실험실
-        // const r3 = this.add.rectangle(150, 380, 12, 30,  0x0000ff).setDepth(12);
-        // const testImage = this.add.image(150, 380, "bullet3").setDepth(13);
+        // const r3 = this.add.rectangle(150, 380, 0.3, 1000,  0x0000ff).setDepth(12);
+        // const testImage = this.add.image(150, 380, "bullet1").setDepth(13);
         // testImage.setRotation(3*Math.PI/2);
         // testImage.setScale(0.5);
+        // r3.setOrigin(0.5, 1);
+        // r3.setScale(15, 0.5);
 
         // 플레이어 속도 조절 변수
         this.playerDefaultSpeed = 80;
@@ -77,7 +86,7 @@ export class Main extends Phaser.Scene
         this.keyShift = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT);
         this.keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
         
-        this.ship = this.add.sprite(this.gameWidth/2, 100, 'ship').setDepth(1);
+        this.ship = this.add.sprite(this.gameWidth/2, 100, 'ship').setDepth(10);
         this.ship.setScale(1/2);
 
         class PlayerBullet extends Phaser.Physics.Arcade.Image
@@ -138,7 +147,13 @@ export class Main extends Phaser.Scene
         }
         
 
-        this.enemy_bullets = this.physics.add.group({
+        this.enemy_bullets_fireball = this.physics.add.group({
+            classType: Bullet,
+            maxSize: 10000,
+            runChildUpdate: true
+        });
+
+        this.enemy_bullets_laser = this.physics.add.group({
             classType: Laser,
             maxSize: 10000,
             runChildUpdate: true
@@ -153,12 +168,12 @@ export class Main extends Phaser.Scene
         // 게임 중력 조절
         this.physics.world.gravity.y = 0;
 
-        this.player = this.physics.add.sprite(this.gameWidth/2, this.gameHeight-50, 'player').setDepth(1);
+        this.player = this.physics.add.sprite(this.gameWidth/2, this.gameHeight-50, 'player').setDepth(11);
         this.player.setScale(1);
         this.player.setOrigin(0.5, 0.5);
         this.player.setAlpha(0.5);
 
-        this.heart = this.physics.add.sprite(this.player.x, this.player.y, 'heart').setDepth(2);
+        this.heart = this.physics.add.sprite(this.player.x, this.player.y, 'heart').setDepth(12);
         this.heart.setOrigin(0.5, 0.5);
         this.heart.setScale(1/200);
         this.heart.setCollideWorldBounds(true);
@@ -171,7 +186,7 @@ export class Main extends Phaser.Scene
         this.physics.world.setBounds(0, 0, this.gameWidth, this.gameHeight);
 
         // 적 총알과 플레이어가 겹쳤을 때 
-        this.physics.add.overlap(this.heart, this.enemy_bullets, (heart, bullet) =>
+        this.physics.add.overlap(this.heart, this.enemy_bullets_fireball, (heart, bullet) =>
         {
             const { x, y } = bullet.body.center;
             console.log(this.playerState);
@@ -187,18 +202,24 @@ export class Main extends Phaser.Scene
             // this.plasma.setSpeedY(0.2 * bullet.body.velocity.y).emitParticleAt(x, y);
             // this.plasma.emitParticleAt(x, y);
 
-            if (this.playerState <= 0)
-            {
-                this.gameOver = true;
-                this.player.setTint(0xFF0000);
-                if(this.keyR.isDown){
-                    this.scene.restart();
-                    this.superTime = false;
-                    this.gameOver = false;
-                    this.playerState = 1;
+        });
 
-                }
+        this.physics.add.overlap(this.heart, this.enemy_bullets_laser, (heart, bullet) =>
+        {
+            const { x, y } = bullet.body.center;
+            console.log(this.playerState);
+            if(!this.superTime){
+                this.playerState -= 1;
+                this.superTime = true;
+                this.player.setTint(0x0000FF);
+                this.timedEvent = this.time.delayedCall(3000, this.onEvent, [], this);
             }
+            
+            bullet.setActive(false);
+            bullet.setVisible(false);
+            // this.plasma.setSpeedY(0.2 * bullet.body.velocity.y).emitParticleAt(x, y);
+            // this.plasma.emitParticleAt(x, y);
+
         });
 
     }
@@ -214,6 +235,7 @@ export class Main extends Phaser.Scene
     {
         // this.attack_pattern1(time, delta);
         this.attack_pattern2(time, delta);
+        
         
         // 키보드 이벤트
         if(!this.gameOver){
@@ -265,6 +287,23 @@ export class Main extends Phaser.Scene
                 }
             }
         }
+
+        if (this.playerState <= 0)
+        {
+            this.gameOver = true;
+            this.player.setTint(0xFF0000);
+            if(this.keyR.isDown){
+                this.superTime = false;
+                this.gameOver = false;
+                this.playerState = 1;
+                this.bulletArray = [];
+                this.bulletCreated = false;
+                this.registry.destroy(); // destroy registry
+                this.events.off();
+                this.time.addEvent(this.bulletTimedEvent);
+                this.scene.restart();
+            }
+        }
         
         // shift를 누르면 속도가 느려지게 만든다.
         if(this.keyShift.isDown){
@@ -296,7 +335,7 @@ export class Main extends Phaser.Scene
             for (let i = 0; i < lineNum; i++)
             {
                 // 총알 하나 가져오기
-                const bullet = this.enemy_bullets.get();
+                const bullet = this.enemy_bullets_fireball.get();
                 /*
                     총알이 발사되는 방향 계산하는 식
                     1. 사방으로 퍼져나가는 방향 계산 : Math.cos(i*(2*Math.PI/lineNum))
@@ -320,7 +359,7 @@ export class Main extends Phaser.Scene
             for (let i = 0; i < lineNum; i++)
             {
                 // 총알 하나 가져오기
-                const bullet = this.enemy_bullets.get();
+                const bullet = this.enemy_bullets_fireball.get();
                 /*
                     총알이 발사되는 방향 계산하는 식
                     1. 사방으로 퍼져나가는 방향 계산 : Math.cos(i*(2*Math.PI/lineNum))
@@ -345,13 +384,16 @@ export class Main extends Phaser.Scene
     }
 
     attack_pattern2(time, delta){
-        let bulletInterval = 100;
+        time = 5*100*this.bulletTimedEvent.getProgress();
+        console.log(time);
+        
         let lineNum = 8;
 
         if(!this.bulletCreated){
             for (let i = 0; i < lineNum; i++)
             {
-                this.bulletArray.push(this.enemy_bullets.get());
+                this.bulletArray.push(this.enemy_bullets_laser.get());
+                // this.bulletArray[i].setBodySize(6, 1000);
             }
             
             this.bulletCreated = true;
@@ -362,8 +404,8 @@ export class Main extends Phaser.Scene
             this.bulletArray[i].setActive(true);
             this.bulletArray[i].setVisible(true);
 
-            let result_x = this.ship.x + Math.cos(i*(2*Math.PI/lineNum) + 2*Math.cos(time/700));
-            let result_y = this.ship.y + Math.sin(i*(2*Math.PI/lineNum) + 2*Math.cos(time/700));
+            let result_x = this.ship.x + Math.cos(i*(1*Math.PI/lineNum) + 0.1*Math.cos(time));
+            let result_y = this.ship.y + Math.sin(i*(1*Math.PI/lineNum) + 0.1*Math.cos(time));
             
             this.bulletArray[i].setPosition(this.ship.x, this.ship.y);
 

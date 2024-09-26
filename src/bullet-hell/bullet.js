@@ -72,12 +72,14 @@ class Laser extends Phaser.Physics.Arcade.Image{
         this.gameHeight = 400;
 
         this.speed = Phaser.Math.GetSpeed(100, 1);
-        this.setOrigin(0.5, 0);
+        
+        this.setOrigin(0.5, 1);
         this.setScale(15, 0.5);
-
+        this.setDepth(2);
         // 1000 당 1초
         this.lifespan = 1*1000;
     }
+
 
     /*
         레이저 방향
@@ -88,8 +90,7 @@ class Laser extends Phaser.Physics.Arcade.Image{
     {
         this.setActive(true);
         this.setVisible(true);
-        // bullet3 피격 범위 (12, 30)
-        this.setBodySize(12, 30);
+        // this.setBodySize(6, 1000);
 
         //  Bullets fire from the middle of the screen to the given x/y
         this.setPosition(main_x, main_y);
@@ -108,6 +109,9 @@ class Laser extends Phaser.Physics.Arcade.Image{
         //     this.setActive(false);
         //     this.setVisible(false);
         // }
+        // bullet1 피격 범위 (6, 1000)
+        this.setBodySize(0.3, 1000, true);
+
 
         // 게임 밖에 벗어나면 삭제 혹시 모르니 남겨두기
         if(this.x < -100 || this.x > this.gameWidth + 100 || this. y < -100 || this.y > this.gameHeight + 100)
