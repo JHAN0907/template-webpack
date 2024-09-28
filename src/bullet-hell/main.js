@@ -159,6 +159,8 @@ export class Main extends Phaser.Scene
             runChildUpdate: true
         });
 
+        this.physics.world.enable(this.enemy_bullets_laser);
+
         this.player_bullets = this.physics.add.group({
             classType: PlayerBullet,
             maxSize:1000,
@@ -176,6 +178,7 @@ export class Main extends Phaser.Scene
         this.heart = this.physics.add.sprite(this.player.x, this.player.y, 'heart').setDepth(12);
         this.heart.setOrigin(0.5, 0.5);
         this.heart.setScale(1/200);
+        this.physics.world.enable(this.heart);
         this.heart.setCollideWorldBounds(true);
         this.heart.setBodySize(5, 5);
 
@@ -189,7 +192,7 @@ export class Main extends Phaser.Scene
         this.physics.add.overlap(this.heart, this.enemy_bullets_fireball, (heart, bullet) =>
         {
             const { x, y } = bullet.body.center;
-            console.log(this.playerState);
+            // console.log(this.playerState);
             if(!this.superTime){
                 this.playerState -= 1;
                 this.superTime = true;
@@ -204,23 +207,36 @@ export class Main extends Phaser.Scene
 
         });
 
-        this.physics.add.overlap(this.heart, this.enemy_bullets_laser, (heart, bullet) =>
-        {
-            const { x, y } = bullet.body.center;
-            console.log(this.playerState);
-            if(!this.superTime){
-                this.playerState -= 1;
-                this.superTime = true;
-                this.player.setTint(0x0000FF);
-                this.timedEvent = this.time.delayedCall(3000, this.onEvent, [], this);
+        if(!this.bulletCreated){
+            for (let i = 0; i < 8; i++)
+            {
+                const temp = this.enemy_bullets_laser.get()
+                this.bulletArray.push(temp);
+                // this.bulletArray[i].setBodySize(6, 1000);
+                console.log(temp);
+                this.physics.add.overlap(this.heart, temp, (heart, bullet) =>
+                {
+                    const { x, y } = bullet.body.center;
+                    console.log("hit laser number :" + i + " and position : "+ x + "," + y);
+                    // if(!this.superTime){
+                    //     this.playerState -= 1;
+                    //     this.superTime = true;
+                    //     this.player.setTint(0x0000FF);
+                    //     this.timedEvent = this.time.delayedCall(3000, this.onEvent, [], this);
+                    // }
+                    
+                    bullet.setActive(false);
+                    bullet.setVisible(false);
+                    // this.plasma.setSpeedY(0.2 * bullet.body.velocity.y).emitParticleAt(x, y);
+                    // this.plasma.emitParticleAt(x, y);
+        
+                });
             }
             
-            bullet.setActive(false);
-            bullet.setVisible(false);
-            // this.plasma.setSpeedY(0.2 * bullet.body.velocity.y).emitParticleAt(x, y);
-            // this.plasma.emitParticleAt(x, y);
+            this.bulletCreated = true;
+        }
 
-        });
+        
 
     }
 
@@ -233,7 +249,10 @@ export class Main extends Phaser.Scene
 
     update (time, delta)
     {
+        // 일반적인 탄막
         // this.attack_pattern1(time, delta);
+        // 레이저 
+        // 그런데 피격 범위가 이상하게 나온다. 
         this.attack_pattern2(time, delta);
         
         
@@ -385,7 +404,7 @@ export class Main extends Phaser.Scene
 
     attack_pattern2(time, delta){
         time = 5*100*this.bulletTimedEvent.getProgress();
-        console.log(time);
+        // console.log(time);
         
         let lineNum = 8;
 
@@ -404,8 +423,8 @@ export class Main extends Phaser.Scene
             this.bulletArray[i].setActive(true);
             this.bulletArray[i].setVisible(true);
 
-            let result_x = this.ship.x + Math.cos(i*(1*Math.PI/lineNum) + 0.1*Math.cos(time));
-            let result_y = this.ship.y + Math.sin(i*(1*Math.PI/lineNum) + 0.1*Math.cos(time));
+            let result_x = this.ship.x + Math.cos(i*(2*Math.PI/lineNum) + 0.3*Math.cos(time));
+            let result_y = this.ship.y + Math.sin(i*(2*Math.PI/lineNum) + 0.3*Math.cos(time));
             
             this.bulletArray[i].setPosition(this.ship.x, this.ship.y);
 

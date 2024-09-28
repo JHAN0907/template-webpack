@@ -1,6 +1,6 @@
 
 
-// 공격 패턴 1용 총알
+// 공격 패턴 1용 총알, 일반적인 총알
 class Bullet extends Phaser.Physics.Arcade.Image
 {
     constructor (scene)
@@ -60,6 +60,7 @@ class Bullet extends Phaser.Physics.Arcade.Image
     }
 }
 
+// 레이저 패턴용 
 class Laser extends Phaser.Physics.Arcade.Image{
     constructor (scene)
     {
@@ -73,8 +74,9 @@ class Laser extends Phaser.Physics.Arcade.Image{
 
         this.speed = Phaser.Math.GetSpeed(100, 1);
         
-        this.setOrigin(0.5, 1);
-        this.setScale(15, 0.5);
+        this.setOrigin(0, 1);
+        this.setScale(10, 0.5);
+        this.setRotation(Math.PI/2)
         this.setDepth(2);
         // 1000 당 1초
         this.lifespan = 1*1000;
@@ -109,8 +111,8 @@ class Laser extends Phaser.Physics.Arcade.Image{
         //     this.setActive(false);
         //     this.setVisible(false);
         // }
-        // bullet1 피격 범위 (6, 1000)
-        this.setBodySize(0.3, 1000, true);
+        // bullet1 피격 범위 (0.3, 1000) -> setOrigin 및 setScale 적용하고 난 후 피격범위 산정
+        // this.setBodySize(0.3, 1000, true);
 
 
         // 게임 밖에 벗어나면 삭제 혹시 모르니 남겨두기
