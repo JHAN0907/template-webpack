@@ -72,7 +72,7 @@ class Laser extends Phaser.Physics.Arcade.Image{
         this.gameWidth = 300;
         this.gameHeight = 400;
 
-        this.speed = Phaser.Math.GetSpeed(100, 1);
+        this.speed = Phaser.Math.GetSpeed(1000, 1);
         
         this.setOrigin(0, 1);
         this.setScale(10, 0.5);
@@ -80,6 +80,11 @@ class Laser extends Phaser.Physics.Arcade.Image{
         this.setDepth(2);
         // 1000 당 1초
         this.lifespan = 1*1000;
+
+        this.object_x;
+        this.object_y;
+        this.main_x;
+        this.main_y;
     }
 
 
@@ -90,22 +95,34 @@ class Laser extends Phaser.Physics.Arcade.Image{
     */
     fire (x, y, main_x, main_y)
     {
+        this.object_x = x;
+        this.object_y = y;
+        this.main_x = main_x;
+        this.main_y = main_y;
+
         this.setActive(true);
         this.setVisible(true);
         // this.setBodySize(6, 1000);
+        
 
-        //  Bullets fire from the middle of the screen to the given x/y
         this.setPosition(main_x, main_y);
+        // console.log("this is tetstets");
+        // console.log(main_x + " : " + main_y);
 
         const angle = Phaser.Math.Angle.Between(x, y, main_x, main_y);
 
         this.setRotation(angle + Math.PI);
-        // this.lifespan = lifespan;
     }
 
     update (time, delta)
     {
         // this.lifespan -= delta;
+        const angle = Phaser.Math.Angle.Between(this.object_x, this.object_y, this.main_x, this.main_y);
+        // console.log(angle);
+        this.setRotation(angle + 0.3*Math.cos(0.0007* time));
+
+        // this.x -= this.incX * (this.speed * delta);
+        // this.y -= this.incY * (this.speed * delta);
 
         // if(this.lifespan < 0){
         //     this.setActive(false);

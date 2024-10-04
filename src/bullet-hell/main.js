@@ -207,35 +207,15 @@ export class Main extends Phaser.Scene
 
         });
 
-        if(!this.bulletCreated){
-            for (let i = 0; i < 8; i++)
-            {
-                const temp = this.enemy_bullets_laser.get()
-                this.bulletArray.push(temp);
-                // this.bulletArray[i].setBodySize(6, 1000);
-                console.log(temp);
-                this.physics.add.overlap(this.heart, temp, (heart, bullet) =>
-                {
-                    const { x, y } = bullet.body.center;
-                    console.log("hit laser number :" + i + " and position : "+ x + "," + y);
-                    // if(!this.superTime){
-                    //     this.playerState -= 1;
-                    //     this.superTime = true;
-                    //     this.player.setTint(0x0000FF);
-                    //     this.timedEvent = this.time.delayedCall(3000, this.onEvent, [], this);
-                    // }
-                    
-                    bullet.setActive(false);
-                    bullet.setVisible(false);
-                    // this.plasma.setSpeedY(0.2 * bullet.body.velocity.y).emitParticleAt(x, y);
-                    // this.plasma.emitParticleAt(x, y);
-        
-                });
-            }
-            
-            this.bulletCreated = true;
-        }
 
+        for (let i = 0; i < 8; i++)
+        {
+            const temp = this.enemy_bullets_laser.get()
+            this.bulletArray.push(temp);
+            // this.bulletArray[i].setBodySize(6, 1000);
+            // console.log(temp);
+            
+        }
         
 
     }
@@ -412,25 +392,25 @@ export class Main extends Phaser.Scene
             for (let i = 0; i < lineNum; i++)
             {
                 this.bulletArray.push(this.enemy_bullets_laser.get());
+                let result_x = this.ship.x + Math.cos(i*(2*Math.PI/lineNum));
+                let result_y = this.ship.y + Math.sin(i*(2*Math.PI/lineNum));
+                this.bulletArray[i].fire(result_x, result_y, this.ship.x, this.ship.y);
                 // this.bulletArray[i].setBodySize(6, 1000);
+                this.physics.add.overlap(this.heart, this.bulletArray[i], (heart, bullet) =>
+                {
+                    const { x, y } = bullet.body.center;
+                    console.log("hit laser number :" + i + " and position : "+ x + "," + y);
+                    // if(!this.superTime){
+                    //     this.playerState -= 1;
+                    //     this.superTime = true;
+                    //     this.player.setTint(0x0000FF);
+                    //     this.timedEvent = this.time.delayedCall(3000, this.onEvent, [], this);
+                    // }
+        
+                });
             }
             
             this.bulletCreated = true;
-        }
-
-        for (let i = 0; i < lineNum; i++)
-        {
-            this.bulletArray[i].setActive(true);
-            this.bulletArray[i].setVisible(true);
-
-            let result_x = this.ship.x + Math.cos(i*(2*Math.PI/lineNum) + 0.3*Math.cos(time));
-            let result_y = this.ship.y + Math.sin(i*(2*Math.PI/lineNum) + 0.3*Math.cos(time));
-            
-            this.bulletArray[i].setPosition(this.ship.x, this.ship.y);
-
-            const angle = Phaser.Math.Angle.Between(result_x, result_y, this.ship.x, this.ship.y);
-
-            this.bulletArray[i].setRotation(angle + Math.PI);
         }
     }
 }
